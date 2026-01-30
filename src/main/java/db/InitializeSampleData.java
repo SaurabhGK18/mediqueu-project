@@ -82,49 +82,92 @@ public class InitializeSampleData {
     /**
      * Add demo credentials to users, admin, and superadmin collections.
      * Username: demo, Password: 123
+     * Also adds the requested saurabhkharsade789@gmail.com login for all roles
      */
     public void addDemoCredentials() {
         try {
             String demoUsername = "demo";
             String demoPassword = "123";
+            String saurabhEmail = "saurabhkharsade789@gmail.com";
+            String saurabhPassword = "123";
 
-            // hash password same as AuthService.hashPassword (SHA-256 -> Base64)
+            // hash passwords same as AuthService.hashPassword (SHA-256 -> Base64)
             java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(demoPassword.getBytes());
-            String hashed = java.util.Base64.getEncoder().encodeToString(hash);
+            byte[] demoHash = md.digest(demoPassword.getBytes());
+            String demoHashed = java.util.Base64.getEncoder().encodeToString(demoHash);
+
+            byte[] saurabhHash = md.digest(saurabhPassword.getBytes());
+            String saurabhHashed = java.util.Base64.getEncoder().encodeToString(saurabhHash);
 
             // users collection
             MongoCollection<Document> users = db.usersCollection;
+
+            // Add demo user
             Document existingUser = users.find(new Document("username", demoUsername)).first();
             if (existingUser == null) {
                 Document u = new Document("name", "Demo User")
                         .append("username", demoUsername)
                         .append("email", "demo@example.com")
                         .append("number", "0000000000")
-                        .append("password", hashed);
+                        .append("password", demoHashed);
                 users.insertOne(u);
+            }
+
+            // Add saurabh user
+            Document existingSaurabhUser = users.find(new Document("email", saurabhEmail)).first();
+            if (existingSaurabhUser == null) {
+                Document su = new Document("name", "Saurabh Kharsade")
+                        .append("username", saurabhEmail)
+                        .append("email", saurabhEmail)
+                        .append("number", "9876543210")
+                        .append("password", saurabhHashed);
+                users.insertOne(su);
             }
 
             // admin collection
             MongoCollection<Document> admins = db.adminCollection;
+
+            // Add demo admin
             Document existingAdmin = admins.find(new Document("username", demoUsername)).first();
             if (existingAdmin == null) {
                 Document a = new Document("username", demoUsername)
-                        .append("password", hashed)
+                        .append("password", demoHashed)
                         .append("name", "Demo Admin")
                         .append("email", "demo-admin@example.com");
                 admins.insertOne(a);
             }
 
+            // Add saurabh admin
+            Document existingSaurabhAdmin = admins.find(new Document("username", saurabhEmail)).first();
+            if (existingSaurabhAdmin == null) {
+                Document sa = new Document("username", saurabhEmail)
+                        .append("password", saurabhHashed)
+                        .append("name", "Saurabh Kharsade (Admin)")
+                        .append("email", saurabhEmail);
+                admins.insertOne(sa);
+            }
+
             // superadmin collection
             MongoCollection<Document> superadmins = db.superadminCollection;
+
+            // Add demo superadmin
             Document existingSuper = superadmins.find(new Document("username", demoUsername)).first();
             if (existingSuper == null) {
                 Document s = new Document("username", demoUsername)
-                        .append("password", hashed)
+                        .append("password", demoHashed)
                         .append("name", "Demo Superadmin")
                         .append("email", "demo-super@example.com");
                 superadmins.insertOne(s);
+            }
+
+            // Add saurabh superadmin
+            Document existingSaurabhSuper = superadmins.find(new Document("username", saurabhEmail)).first();
+            if (existingSaurabhSuper == null) {
+                Document ss = new Document("username", saurabhEmail)
+                        .append("password", saurabhHashed)
+                        .append("name", "Saurabh Kharsade (Superadmin)")
+                        .append("email", saurabhEmail);
+                superadmins.insertOne(ss);
             }
 
             // Also add a demo doctor user record in users collection for convenience
@@ -135,11 +178,24 @@ public class InitializeSampleData {
                         .append("username", demoDoctorUsername)
                         .append("email", "demo-doctor@example.com")
                         .append("number", "0000000000")
-                        .append("password", hashed);
+                        .append("password", demoHashed);
                 users.insertOne(du);
             }
 
+            // Add saurabh doctor user
+            String saurabhDoctorUsername = "saurabh_doctor";
+            Document existingSaurabhDocUser = users.find(new Document("username", saurabhDoctorUsername)).first();
+            if (existingSaurabhDocUser == null) {
+                Document sdu = new Document("name", "Dr. Saurabh Kharsade")
+                        .append("username", saurabhDoctorUsername)
+                        .append("email", saurabhEmail)
+                        .append("number", "9876543210")
+                        .append("password", saurabhHashed);
+                users.insertOne(sdu);
+            }
+
             System.out.println("Demo credentials ensured (demo / 123)");
+            System.out.println("Saurabh credentials added for all roles: " + saurabhEmail + " / 123");
         } catch (Exception e) {
             System.err.println("Error adding demo credentials: " + e.getMessage());
         }

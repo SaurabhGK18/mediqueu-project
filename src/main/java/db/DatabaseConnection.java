@@ -41,7 +41,7 @@ public class DatabaseConnection {
             // Create MongoDB client
             client = MongoClients.create(URI);
             database = client.getDatabase(DATABASE_NAME);
-            
+
             // Initialize collections (equivalent to Python db['collection_name'])
             patientsCollection = database.getCollection("patients");
             doctorsCollection = database.getCollection("doctors");
@@ -54,17 +54,34 @@ public class DatabaseConnection {
             hospitalDischargeCollection = database.getCollection("discharged");
             inventoryCollection = database.getCollection("inventory");
             stockCollection = database.getCollection("stock");
-            
+
             // Test connection (equivalent to Python client.admin.command('ping'))
             database.runCommand(new Document("ping", 1));
             System.out.println("Successfully connected to MongoDB!");
-            
+
             // Clean up old appointments (equivalent to Python code)
             cleanupOldAppointments();
-            
+
         } catch (Exception e) {
             System.err.println("Error connecting to MongoDB: " + e.getMessage());
+            System.err.println("MongoDB connection failed. The application will continue with limited functionality.");
+            System.err.println("Please check your network connection or MongoDB Atlas configuration.");
             e.printStackTrace();
+
+            // Set collections to null to indicate connection failure
+            client = null;
+            database = null;
+            patientsCollection = null;
+            doctorsCollection = null;
+            usersCollection = null;
+            adminCollection = null;
+            appointmentCollection = null;
+            contactCollection = null;
+            superadminCollection = null;
+            hospitalDataCollection = null;
+            hospitalDischargeCollection = null;
+            inventoryCollection = null;
+            stockCollection = null;
         }
     }
     
@@ -76,6 +93,13 @@ public class DatabaseConnection {
             instance = new DatabaseConnection();
         }
         return instance;
+    }
+
+    /**
+     * Check if database connection is available.
+     */
+    public boolean isConnected() {
+        return client != null && database != null;
     }
     
     /**

@@ -18,31 +18,44 @@ public class Main {
      * @param args Command-line arguments (optional port number)
      */
     public static void main(String[] args) {
+        try { web.ApiServer.start(); } catch (Exception e) { e.printStackTrace(); }
+
+
+
         try {
             // Initialize sample data (hospitals, doctors, admin)
             System.out.println("Setting up database...");
             DatabaseConnection db = DatabaseConnection.getInstance();
-            InitializeSampleData dataInit = new InitializeSampleData();
-            
-            long hospitalCount = db.hospitalDataCollection.countDocuments();
-            if (hospitalCount == 0) {
-                // Full initialization if no hospitals exist
-                System.out.println("No hospitals found. Initializing all sample data...");
-                dataInit.initializeAll();
+
+            // Check if database connection is available
+            if (!db.isConnected()) {
+                System.err.println("Warning: MongoDB connection is not available.");
+                System.err.println("The application will start with limited functionality.");
+                System.err.println("Please check your network connection and MongoDB configuration.");
+                System.err.println();
             } else {
-                // Ensure hospitals and doctors exist even if some data is present
-                System.out.println("Hospital data present (" + hospitalCount + " records). Ensuring all required data exists...");
-                dataInit.initializeHospitals();
-                dataInit.initializeDoctors();
-                dataInit.ensureMinimumDoctorsPerSpeciality(10);
-                // Verify and fix any missing doctors
-                dataInit.verifyDoctorsExist();
-                // Ensure admin credentials exist
-                dataInit.initializeAdmin();
-                dataInit.addDemoCredentials();
-                System.out.println("Data verification complete!");
+                InitializeSampleData dataInit = new InitializeSampleData();
+
+                long hospitalCount = db.hospitalDataCollection.countDocuments();
+                if (hospitalCount == 0) {
+                    // Full initialization if no hospitals exist
+                    System.out.println("No hospitals found. Initializing all sample data...");
+                    dataInit.initializeAll();
+                } else {
+                    // Ensure hospitals and doctors exist even if some data is present
+                    System.out.println("Hospital data present (" + hospitalCount + " records). Ensuring all required data exists...");
+                    dataInit.initializeHospitals();
+                    dataInit.initializeDoctors();
+                    dataInit.ensureMinimumDoctorsPerSpeciality(10);
+                    // Verify and fix any missing doctors
+                    dataInit.verifyDoctorsExist();
+                    // Ensure admin credentials exist
+                    dataInit.initializeAdmin();
+                    dataInit.addDemoCredentials();
+                    System.out.println("Data verification complete!");
+                }
+                System.out.println();
             }
-            System.out.println();
             
             int port = 8080;
             if (args.length > 0) {

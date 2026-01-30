@@ -32,8 +32,13 @@ public class AuthService {
      * @return Session ID if successful, null if failed
      */
     public String userLogin(String username, String password) {
+        // Check database connection
+        if (!db.isConnected()) {
+            return null; // Cannot authenticate without database
+        }
+
         MongoCollection<Document> usersCollection = db.usersCollection;
-        
+
         // Find user by username
         // Equivalent to Python: users_collection.find_one({'username': username})
         Document query = new Document("username", username);
@@ -69,8 +74,13 @@ public class AuthService {
      * @return Session ID if successful, null if failed
      */
     public String adminLogin(String username, String password) {
+        // Check database connection
+        if (!db.isConnected()) {
+            return null; // Cannot authenticate without database
+        }
+
         MongoCollection<Document> adminCollection = db.adminCollection;
-        
+
         Document query = new Document("username", username);
         Document admin = adminCollection.find(query).first();
         
@@ -133,10 +143,15 @@ public class AuthService {
      * @param password Plain text password
      * @return true if successful, false if username/email already exists
      */
-    public boolean registerUser(String name, String username, String email, 
+    public boolean registerUser(String name, String username, String email,
                                String phone, String password) {
+        // Check database connection
+        if (!db.isConnected()) {
+            return false; // Cannot register without database
+        }
+
         MongoCollection<Document> usersCollection = db.usersCollection;
-        
+
         // Check if username exists
         Document usernameQuery = new Document("username", username.trim());
         Document existingUser = usersCollection.find(usernameQuery).first();

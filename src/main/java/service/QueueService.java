@@ -27,19 +27,24 @@ public class QueueService {
      * @param speciality Medical speciality
      * @return Queue number (count + 1)
      */
-    public int calculateQueueNumber(String appointmentDate, String timeSlot, 
+    public int calculateQueueNumber(String appointmentDate, String timeSlot,
                                     String hospitalName, String speciality) {
+        // Check database connection
+        if (!db.isConnected()) {
+            return 1; // Return queue number 1 if database unavailable (fallback)
+        }
+
         MongoCollection<Document> appointmentCollection = db.appointmentCollection;
-        
+
         // Count how many appointments have already been booked for the same slot
         // Equivalent to Python: appointment_collection.count_documents({...})
         Document query = new Document("appointment_date", appointmentDate)
                 .append("time_slot", timeSlot)
                 .append("hospital_name", hospitalName)
                 .append("speciality", speciality);
-        
+
         long count = appointmentCollection.countDocuments(query);
-        
+
         // Return count + 1 (next queue number)
         return (int) count + 1;
     }
@@ -54,8 +59,13 @@ public class QueueService {
      * @param speciality Medical speciality
      * @return true if slot is full, false if available
      */
-    public boolean checkAndAllocateTimeSlot(String appointmentDate, String timeSlot, 
+    public boolean checkAndAllocateTimeSlot(String appointmentDate, String timeSlot,
                                            String hospitalName, String speciality) {
+        // Check database connection
+        if (!db.isConnected()) {
+            return true; // Consider slot full if database unavailable (conservative approach)
+        }
+
         MongoCollection<Document> doctorsCollection = db.doctorsCollection;
         MongoCollection<Document> appointmentCollection = db.appointmentCollection;
         

@@ -42,7 +42,14 @@ public class AppointmentService {
                                             String timeSlot, String speciality, String diseaseDescription,
                                             String hospitalName, String doctorName) {
         AppointmentResult result = new AppointmentResult();
-        
+
+        // Check database connection
+        if (!db.isConnected()) {
+            result.success = false;
+            result.message = "Database connection is not available. Please try again later.";
+            return result;
+        }
+
         // Validate inputs
         if (name == null || name.trim().isEmpty()) {
             result.success = false;
@@ -169,8 +176,13 @@ public class AppointmentService {
      * @return List of doctor names
      */
     public List<String> getDoctorsByHospitalAndSpeciality(String hospital, String speciality) {
+        // Check database connection
+        if (!db.isConnected()) {
+            return new ArrayList<>(); // Return empty list if database unavailable
+        }
+
         MongoCollection<Document> doctorsCollection = db.doctorsCollection;
-        
+
         // Trim and normalize inputs
         hospital = hospital != null ? hospital.trim() : "";
         speciality = speciality != null ? speciality.trim() : "";
@@ -217,16 +229,21 @@ public class AppointmentService {
      * @return List of appointment documents
      */
     public List<Document> getUserAppointments(String username) {
+        // Check database connection
+        if (!db.isConnected()) {
+            return new ArrayList<>(); // Return empty list if database unavailable
+        }
+
         MongoCollection<Document> appointmentCollection = db.appointmentCollection;
-        
+
         Document query = new Document("username", username);
         FindIterable<Document> appointments = appointmentCollection.find(query);
-        
+
         List<Document> appointmentList = new ArrayList<>();
         for (Document appointment : appointments) {
             appointmentList.add(appointment);
         }
-        
+
         return appointmentList;
     }
     
@@ -236,10 +253,15 @@ public class AppointmentService {
      * @return List of hospital names
      */
     public List<String> getAllHospitals() {
+        // Check database connection
+        if (!db.isConnected()) {
+            return new ArrayList<>(); // Return empty list if database unavailable
+        }
+
         MongoCollection<Document> hospitalDataCollection = db.hospitalDataCollection;
-        
+
         FindIterable<Document> hospitals = hospitalDataCollection.find();
-        
+
         List<String> hospitalNames = new ArrayList<>();
         for (Document hospital : hospitals) {
             String hospitalName = hospital.getString("hospital_name");
@@ -247,10 +269,10 @@ public class AppointmentService {
                 hospitalNames.add(hospitalName.trim());
             }
         }
-        
+
         // Sort alphabetically for better UX
         hospitalNames.sort(String.CASE_INSENSITIVE_ORDER);
-        
+
         return hospitalNames;
     }
     
